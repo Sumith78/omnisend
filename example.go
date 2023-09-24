@@ -13,7 +13,9 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+	"database/sql/driver"
 )
+
 
 type Business struct {
 	ID                   uuid.UUID      `gorm:"primaryKey;type:uuid;column:business_id"`
@@ -206,10 +208,9 @@ func FetchOrders() []Order {
 }
 
 func UpdateStatus(orderID string, status ShipmentStatusUpdate) bool {
-	// Update status in data source
 	for i, order := range orders {
 		if order.ID.String() == orderID {
-			orders[i].ShipmentStatus = status.NewStatus
+			orders[i].ShipmentStatus = ShipmentStatus(status.NewStatus)
 			return true
 		}
 	}
@@ -238,10 +239,12 @@ func UpdateShipmentStatusHandler(c *gin.Context) {
 		return
 	}
 
-	// Find and update the shipment status
+	// Convert request.NewStatus to ShipmentStatus
+	newStatus := ShipmentStatus(request.NewStatus)
+
 	for i, order := range orders {
 		if order.ID.String() == request.OrderID {
-			orders[i].ShipmentStatus = request.NewStatus
+			orders[i].ShipmentStatus = newStatus
 			orders[i].Email = request.Email
 			NotifyShipmentStatusChange(orders[i].Email, orders[i].ID.String())
 			break
@@ -250,7 +253,6 @@ func UpdateShipmentStatusHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Shipment status updated successfully"})
 }
-
 func NotifyShipmentStatusChange(email string, orderID string) {
 	from := mail.NewEmail("Your Name", "your@example.com")
 	subject := "Shipment Status Update"

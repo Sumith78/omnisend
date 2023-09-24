@@ -1,5 +1,10 @@
 package types 
+import (
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/lib/pq"
+)
 
 
 type Business struct {

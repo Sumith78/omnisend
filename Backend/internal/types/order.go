@@ -1,5 +1,39 @@
 package types
 
+
+import (
+	
+
+	"time"
+
+	"database/sql/driver"
+	"encoding/json"
+
+	
+	"github.com/google/uuid"
+	
+)
+
+type Product struct {
+	ProductID   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float32 `json:"price"`
+}
+
+type ProductArray []Product
+
+func (p *ProductArray) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), &p)
+}
+
+func (p ProductArray) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return json.Marshal(p)
+}
+
 type Order struct {
 	ID                  uuid.UUID `gorm:"primaryKey;type:uuid;column:order_id"`
 	BusinessID          uuid.UUID `gorm:"foreignKey:business_id;type:uuid;column:order_business_id"`

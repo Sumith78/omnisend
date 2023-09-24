@@ -4,11 +4,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"fmt"
+	"time"
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/google/uuid"
+	"database/sql/driver"
 )
 
 type Order struct {
@@ -30,6 +34,32 @@ type Order struct {
 	UniqueID            string    `gorm:"column:order_unique_id;uniqueIndex:idx_order_unique_id"`
 	ShipmentStatus      ShipmentStatus `gorm:"column:order_shipment_status"`
 	Email               string    `gorm:"column:order_email"`
+}
+
+type Product struct {
+	ProductID   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float32 `json:"price"`
+}
+
+type ProductArray []Product
+
+func (p *ProductArray) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), &p)
+}
+
+func (p ProductArray) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return json.Marshal(p)
+}
+
+type ShipmentStatus string
+
+type ShipmentStatusUpdate struct {
+	NewStatus string `json:"new_status"`
 }
 
 var orders []Order
@@ -93,10 +123,6 @@ var sampleOrders = `
 ]
 `
 
-type ShipmentStatusUpdate struct {
-	NewStatus string `json:"new_status"`
-}
-
 func GetOrders() []Order {
 	var orders []Order
 	if err := json.Unmarshal([]byte(sampleOrders), &orders); err != nil {
@@ -112,7 +138,7 @@ func FetchOrders() []Order {
 func UpdateStatus(orderID string, status ShipmentStatusUpdate) bool {
 	for i, order := range orders {
 		if order.ID.String() == orderID {
-			orders[i].ShipmentStatus = status.NewStatus
+			orders[i].ShipmentStatus = ShipmentStatus(status.NewStatus)
 			return true
 		}
 	}
@@ -129,6 +155,11 @@ func main() {
 	r.Run(":8080")
 }
 
+func GetOrdersHandler(c *gin.Context) {
+	orders := GetOrders()
+	c.JSON(http.StatusOK, orders)
+}
+
 func UpdateShipmentStatusHandler(c *gin.Context) {
 	var request struct {
 		OrderID   string `json:"order_id"`
@@ -141,9 +172,12 @@ func UpdateShipmentStatusHandler(c *gin.Context) {
 		return
 	}
 
+	// Convert request.NewStatus to ShipmentStatus
+	newStatus := ShipmentStatus(request.NewStatus)
+
 	for i, order := range orders {
 		if order.ID.String() == request.OrderID {
-			orders[i].ShipmentStatus = request.NewStatus
+			orders[i].ShipmentStatus = newStatus
 			orders[i].Email = request.Email
 			NotifyShipmentStatusChange(orders[i].Email, orders[i].ID.String())
 			break
@@ -151,6 +185,20 @@ func UpdateShipmentStatusHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Shipment status updated successfully"})
+}
+
+
+func ReceiveNotificationHandler(c *gin.Context) {
+	var notification struct {
+		// Define the fields of the notification struct based on the actual data
+	}
+
+	if err := c.ShouldBindJSON(&notification); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Notification handled successfully"})
 }
 
 func NotifyShipmentStatusChange(email string, orderID string) {

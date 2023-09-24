@@ -1,5 +1,14 @@
 package types
 
+import (
+
+	"time"
+	
+
+	"github.com/google/uuid"
+	
+	
+)
 
 type Shipment struct {
 	ID                      uuid.UUID          `gorm:"primaryKey;type:uuid;column:shipment_id"`
@@ -32,3 +41,9 @@ type Shipment struct {
 	TrackerServiceCode      TrackerServiceCode `gorm:"shipment_tracker_service_code"`
 	UniqueID                string             `gorm:"column:shipment_unique_id;uniqueIndex:idx_shipment_unique_id"`
 }
+
+
+
+type ShipmentStatus string
+
+type TrackerServiceCode string

@@ -1,21 +1,19 @@
 package main
 
 import (
+	"database/sql/driver"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
-// ... (Business, Product, Order, Shipment, Checkpoint structs)
+type Product struct {
+	ProductID   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float32 `json:"price"`
+}
 
 type ProductArray []Product
 
@@ -33,7 +31,37 @@ func (p ProductArray) Value() (driver.Value, error) {
 type ShipmentStatus string
 type TrackerServiceCode string
 
-// ... (GetOrders, FetchOrders, UpdateStatus, NotifyShipmentStatusChange functions)
+type Order struct {
+	// Define your Order struct fields here
+}
+
+// Define your Business, Shipment, and Checkpoint structs here
+
+// Define your GetOrders, FetchOrders, UpdateStatus, NotifyShipmentStatusChange functions here
+
+func GetOrders() []Order {
+	// Placeholder for retrieving orders from your data source
+	return nil
+}
+
+func NotifyShipmentStatusChange(email string, orderID string) {
+	// Placeholder for sending email notification
+}
+
+func UpdateStatus(orderID string, status ShipmentStatus) bool {
+	// Placeholder for updating status in data source
+	return false
+}
+
+func main() {
+	r := gin.Default()
+
+	r.GET("/api/orders", GetOrdersHandler)
+	r.POST("/api/update-status", UpdateShipmentStatusHandler)
+	r.POST("/api/receive-notification", ReceiveNotificationHandler)
+
+	r.Run(":8080")
+}
 
 func GetOrdersHandler(c *gin.Context) {
 	orders := GetOrders()
@@ -52,17 +80,16 @@ func UpdateShipmentStatusHandler(c *gin.Context) {
 		return
 	}
 
-	// Find and update the shipment status
-	for i, order := range orders {
-		if order.ID.String() == request.OrderID {
-			orders[i].ShipmentStatus = request.NewStatus
-			orders[i].Email = request.Email
-			NotifyShipmentStatusChange(orders[i].Email, orders[i].ID.String())
-			break
-		}
-	}
+	// Placeholder for finding and updating the shipment status
+	orderID := request.OrderID
+	newStatus := ShipmentStatus(request.NewStatus)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Shipment status updated successfully"})
+	if UpdateStatus(orderID, newStatus) {
+		NotifyShipmentStatusChange(request.Email, orderID)
+		c.JSON(http.StatusOK, gin.H{"message": "Shipment status updated successfully"})
+	} else {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Order not found"})
+	}
 }
 
 func ReceiveNotificationHandler(c *gin.Context) {

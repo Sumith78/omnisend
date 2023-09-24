@@ -1,4 +1,12 @@
 package types
+import (
+	"time"
+
+	
+	"github.com/google/uuid"
+
+	
+)
 
 type Checkpoint struct {
 	ID             uuid.UUID      `gorm:"primaryKey;type:uuid;column:checkpoint_id"`

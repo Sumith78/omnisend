@@ -1,10 +1,16 @@
 package models
 
 import (
-	"github.com/google/uuid"
-	"time"
-)
+	"encoding/json"
 
+	"time"
+	"database/sql/driver"
+
+	
+	"github.com/google/uuid"
+
+	
+)
 type Shipment struct {
 	ID                      uuid.UUID          `gorm:"primaryKey;type:uuid;column:shipment_id"`
 	OrderID                 uuid.UUID          `gorm:"foreignKey:order_id;type:uuid;column:shipment_order_id"`
@@ -47,6 +53,14 @@ type Checkpoint struct {
 	CreatedAt      time.Time      `gorm:"column:checkpoint_created_at"`
 }
 
+type Product struct {
+	ProductID   string  `json:"product_id"`
+	ProductName string  `json:"product_name"`
+	Quantity    int     `json:"quantity"`
+	Price       float32 `json:"price"`
+}
+
+
 type ProductArray []Product
 
 func (p *ProductArray) Scan(value interface{}) error {
@@ -63,3 +77,5 @@ func (p ProductArray) Value() (driver.Value, error) {
 type ShipmentStatus string
 
 type TrackerServiceCode string
+
+var orders []Order

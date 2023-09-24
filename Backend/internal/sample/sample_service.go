@@ -1,26 +1,33 @@
 package sample
 
 import (
-	"github.com/yourusername/yourproject/internal/types"
+	
 	"github.com/google/uuid"
 )
 
 type SampleService struct {
-	// Define the sample service functions here.
+	// Define any properties or dependencies the service may have here.
+	// For example, you might include a reference to a repository.
+	// repo *SampleRepository
+}
+
+func NewSampleService() *SampleService {
+	// If your service needs any initialization, you can do it here.
+	return &SampleService{}
 }
 
 func (s *SampleService) Func(
-	business *types.Business,
-	checkpointID *uuid.UUID,
-	orderID uuid.UUID,
-	customerEmail string,
-	customerPhone string,
+    business *types.Business,
+    checkpointID *uuid.UUID,
+    orderID uuid.UUID,
+    customerEmail string,
+    customerPhone string,
 ) {
-	// Assuming you want to perform some operations using the provided parameters.
-	// This is just a placeholder, you should replace it with actual logic.
+	// Implement the function logic here.
+	// For example, you can use the provided parameters to perform specific operations.
 
 	// Example: Printing the provided information.
-	println("Business ID:", business.ID)
+	println("Business ID:", business.BusinessID)
 	println("Checkpoint ID:", *checkpointID)
 	println("Order ID:", orderID)
 	println("Customer Email:", customerEmail)

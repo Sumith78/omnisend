@@ -1,12 +1,11 @@
 package sample
 
-import "github.com/yourusername/yourproject/internal/types"
 
 type SampleRepository struct {
 	// Define the sample repository functions here.
 }
 
-func (r *SampleRepository) Func() *types.SampleType {
+func (r *SampleRepository) Func() (*types.SampleType, error) {
 	// Assuming you want to perform some database operation and return a SampleType.
 	// This is just a placeholder, you should replace it with actual logic.
 
@@ -17,5 +16,6 @@ func (r *SampleRepository) Func() *types.SampleType {
 		// Add other fields as needed.
 	}
 
-	return sample
+	// Return sample and no error
+	return sample, nil
 }
